@@ -149,6 +149,10 @@ SELECT * FROM v_params_pui;
 | `v_apalancamiento_cior` | Apalancamiento CIOR por mercado |
 | `v_sensibilidad_competitivo` | Comparación CRPUI vs CFPUI |
 | `v_sensibilidad_recaudo` | Barrido factor de recaudo |
+| `v_resumen_independientes` | Resumen de todos los comerc. independientes |
+| `v_comparacion_grupos` | Comparación asociados vs no asociados |
+| `v_top_afectados` | Top 30 independientes con mayor pérdida |
+| `v_riesgo_flujo_caja` | Independientes con mayor riesgo financiero |
 
 ---
 
@@ -184,6 +188,57 @@ La simulación depende de la **base de datos XM/SIN** con esquema star:
 | `top_cnior_afectados.csv` | CSV | Top 20 CNIOR con mayor pérdida |
 | `apalancamiento_cior.csv` | CSV | Detalle apalancamiento CIOR |
 | `resumen_ejecutivo.md` | Markdown | Documento ejecutivo para dirección |
+
+---
+
+## Análisis para Comercializadores Independientes
+
+Este proyecto incluye un análisis específico para los **comercializadores independientes** (CNIOR), que son los más afectados por el esquema transitorio del PUI.
+
+### Clasificación de Independientes
+
+- **Asociados** (19 agentes): Comercializadores independientes asociados a la empresa contratante
+- **No Asociados** (53 agentes): Otros independientes sin respaldo financiero
+
+### Métricas Clave para Independientes
+
+| Métrica | Descripción |
+|---------|-------------|
+| `sobrecosto_pui` | Diferencia entre lo que pagan y lo que recaudan |
+| `pct_perdida_incobrabilidad` | Porcentaje de pérdida por no cobrar a usuarios |
+| `riesgo_flujo_caja` | Porcentaje de ingresos comprometidos con giros |
+| `tipo_riesgo` | Clasificación de riesgo (asociado/no asociado) |
+
+### Consultas para Independientes
+
+```sql
+-- Resumen de todos los independientes
+SELECT * FROM v_resumen_independientes;
+
+-- Comparación entre asociados y no asociados
+SELECT * FROM v_comparacion_grupos;
+
+-- Top independientes más afectados
+SELECT * FROM v_top_afectados LIMIT 10;
+
+-- Independientes con mayor riesgo financiero
+SELECT * FROM v_riesgo_flujo_caja;
+```
+
+### Generar Reporte Ejecutivo
+
+```bash
+# Ejecutar reporte completo
+psql "postgresql://postgres:postgres@localhost:5432/postgres" -f scripts/reporte_independientes.sql
+```
+
+### Apoyo al Análisis Regulatorio
+
+El análisis de independientes apoya los comentarios del `docs/comentario.md` sobre:
+
+1. **Asimetría de riesgos**: Los independientes asumen el 100% del riesgo de impago
+2. **Falta de músculo financiero**: No tienen subsidio cruzado de otras líneas de negocio
+3. **Concentración del mercado**: El esquema transitorio desincentiva la participación de independientes
 
 ---
 

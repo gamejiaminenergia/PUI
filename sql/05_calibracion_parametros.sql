@@ -99,3 +99,63 @@ FROM agentes_por_mercado
 WHERE vr_total > 0
 ORDER BY vr_total DESC
 LIMIT 20;
+
+-- ============================================================
+-- CALIBRACIÓN PARA INDEPENDIENTES
+-- ============================================================
+
+-- 6. Distribución de tamaño de cartera entre independientes
+SELECT
+    CASE WHEN ia.es_miembro_asociacion THEN 'Asociado' ELSE 'No Asociado' END AS grupo,
+    COUNT(DISTINCT ha.agente_code) AS n_agentes,
+    SUM(ha."DemaComeReg")/1e6 AS gwh_totales,
+    AVG(ha."DemaComeReg")/1e6 AS promedio_gwh,
+    MIN(ha."DemaComeReg")/1e6 AS min_gwh,
+    MAX(ha."DemaComeReg")/1e6 AS max_gwh
+FROM fact_hourly_agente ha
+JOIN dim_agente a ON ha.agente_code = a.agente_code
+JOIN independientes_asociacion ia ON ha.agente_code = ia.agente_code
+WHERE a.activity = 'COMERCIALIZACIÓN'
+  AND ha.fecha_hora BETWEEN 
+    to_timestamp(get_param('p_fecha_inicio'))::date AND
+    to_timestamp(get_param('p_fecha_fin'))::date
+GROUP BY ia.es_miembro_asociacion;
+
+-- 7. Pérdidas históricas por agente independiente (proxy de recaudo real)
+SELECT
+    ia.agente_nombre,
+    ia.es_miembro_asociacion,
+    SUM(ha."PerdidasEnerReg")/1e6 AS perdidas_gwh,
+    SUM(ha."DemaComeReg")/1e6 AS demanda_gwh,
+    CASE WHEN SUM(ha."DemaComeReg") > 0
+        THEN ROUND((SUM(ha."PerdidasEnerReg") / SUM(ha."DemaComeReg"))::numeric * 100, 2)
+        ELSE 0
+    END AS pct_perdidas,
+    CASE WHEN SUM(ha."DemaComeReg") > 0
+        THEN ROUND(((1 - SUM(ha."PerdidasEnerReg") / SUM(ha."DemaComeReg"))::numeric) * 100, 2)
+        ELSE 0
+    END AS factor_recaudo_estimado
+FROM fact_hourly_agente ha
+JOIN dim_agente a ON ha.agente_code = a.agente_code
+JOIN independientes_asociacion ia ON ha.agente_code = ia.agente_code
+WHERE a.activity = 'COMERCIALIZACIÓN'
+  AND ha.fecha_hora BETWEEN 
+    to_timestamp(get_param('p_fecha_inicio'))::date AND
+    to_timestamp(get_param('p_fecha_fin'))::date
+GROUP BY ia.agente_nombre, ia.es_miembro_asociacion
+HAVING SUM(ha."DemaComeReg") > 0
+ORDER BY factor_recaudo_estimado ASC
+LIMIT 20;
+
+-- 8. Validación: ¿Cuántos independientes están en la BD?
+SELECT
+    COUNT(DISTINCT ia.agente_code) AS total_independientes_bd,
+    COUNT(DISTINCT CASE WHEN ha.agente_code IS NOT NULL THEN ia.agente_code END) AS independientes_con_datos,
+    COUNT(DISTINCT CASE WHEN ha.agente_code IS NULL THEN ia.agente_code END) AS independientes_sin_datos
+FROM independientes_asociacion ia
+LEFT JOIN fact_hourly_agente ha ON ia.agente_code = ha.agente_code
+    AND ha.fecha_hora BETWEEN 
+        to_timestamp(get_param('p_fecha_inicio'))::date AND
+        to_timestamp(get_param('p_fecha_fin'))::date
+JOIN dim_agente a ON ia.agente_code = a.agente_code
+WHERE a.activity = 'COMERCIALIZACIÓN';

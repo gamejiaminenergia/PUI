@@ -99,3 +99,81 @@ FROM v_simulacion_pui
 WHERE rol_pui = 'CNIOR'
 GROUP BY param_factor_recaudo, rol_pui
 ORDER BY param_factor_recaudo;
+
+-- 6. Resumen de Independientes (todos los agentes independientes)
+DROP VIEW IF EXISTS v_resumen_independientes CASCADE;
+CREATE VIEW v_resumen_independientes AS
+SELECT
+    es_miembro_asociacion,
+    tipo_independiente,
+    param_rcpui,
+    param_factor_recaudo,
+    COUNT(DISTINCT agente_code) AS n_agentes,
+    COUNT(DISTINCT mercado_code) AS n_mercados,
+    SUM(ventas_reg_kwh)/1e6 AS gwh_totales,
+    SUM(ingresos_pui_facturado)/1e9 AS ingresos_pui_miles_millones_cop,
+    SUM(egreso_giro_cior)/1e9 AS egresos_giro_miles_millones_cop,
+    SUM(flujo_neto_caja_pui)/1e9 AS flujo_neto_caja_miles_millones_cop,
+    AVG(sobrecosto_pui)/1e6 AS promedio_sobrecosto_millones_cop,
+    AVG(pct_perdida_incobrabilidad) AS promedio_perdida_incobrabilidad,
+    AVG(riesgo_flujo_caja) AS promedio_riesgo_flujo,
+    MIN(mes) AS mes_inicio,
+    MAX(mes) AS mes_fin
+FROM v_simulacion_pui
+WHERE es_independiente = true
+GROUP BY es_miembro_asociacion, tipo_independiente, param_rcpui, param_factor_recaudo;
+
+-- 7. Comparación entre Miembros y No Miembros de la Asociación
+DROP VIEW IF EXISTS v_comparacion_grupos CASCADE;
+CREATE VIEW v_comparacion_grupos AS
+SELECT
+    CASE WHEN es_miembro_asociacion THEN 'Miembros (pagaron estudio)' ELSE 'No miembros' END AS grupo,
+    COUNT(DISTINCT agente_code) AS n_agentes,
+    SUM(ventas_reg_kwh)/1e6 AS gwh_totales,
+    AVG(sobrecosto_pui)/1e6 AS promedio_sobrecosto_millones,
+    AVG(pct_perdida_incobrabilidad) AS promedio_perdida_incobrabilidad,
+    AVG(riesgo_flujo_caja) AS promedio_riesgo_flujo,
+    SUM(flujo_neto_caja_pui)/1e9 AS flujo_neto_total_miles_millones,
+    AVG(flujo_neto_caja_pui)/1e6 AS promedio_flujo_neto_millones,
+    MIN(flujo_neto_caja_pui)/1e6 AS peor_flujo_millones,
+    MAX(flujo_neto_caja_pui)/1e6 AS mejor_flujo_millones
+FROM v_simulacion_pui
+WHERE es_independiente = true
+GROUP BY es_miembro_asociacion;
+
+-- 8. Top Independientes Más Afectados (por pérdida absoluta)
+DROP VIEW IF EXISTS v_top_afectados CASCADE;
+CREATE VIEW v_top_afectados AS
+SELECT
+    mercado_name,
+    mes,
+    agente_name,
+    es_miembro_asociacion,
+    tipo_independiente,
+    flujo_neto_caja_pui/1e6 AS perdida_millones_cop,
+    sobrecosto_pui/1e6 AS sobrecosto_millones_cop,
+    pct_perdida_incobrabilidad,
+    riesgo_flujo_caja,
+    ventas_reg_kwh/1e6 AS ventas_gwh,
+    param_factor_recaudo
+FROM v_simulacion_pui
+WHERE es_independiente = true AND flujo_neto_caja_pui < 0
+ORDER BY flujo_neto_caja_pui ASC
+LIMIT 30;
+
+-- 9. Independientes con Mayor Riesgo de Flujo de Caja
+DROP VIEW IF EXISTS v_riesgo_flujo_caja CASCADE;
+CREATE VIEW v_riesgo_flujo_caja AS
+SELECT
+    mercado_name,
+    mes,
+    agente_name,
+    es_miembro_asociacion,
+    riesgo_flujo_caja,
+    egreso_giro_cior/1e6 AS giro_obligatorio_millones,
+    ventas_reg_kwh/1e6 AS ventas_gwh,
+    tipo_independiente
+FROM v_simulacion_pui
+WHERE es_independiente = true AND riesgo_flujo_caja > 10  -- más del 10% de ventas comprometidas
+ORDER BY riesgo_flujo_caja DESC
+LIMIT 30;

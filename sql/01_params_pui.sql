@@ -61,3 +61,45 @@ $$ LANGUAGE SQL STABLE;
 CREATE OR REPLACE FUNCTION get_param_bool(p_name TEXT) RETURNS BOOLEAN AS $$
     SELECT param_value = 1 FROM params_pui WHERE param_name = p_name;
 $$ LANGUAGE SQL STABLE;
+
+-- Tabla de clasificación de independientes
+-- miembro = true: asociación que pagó el estudio
+-- miembro = false: otros independientes (universo de estudio)
+DROP TABLE IF EXISTS independientes_asociacion CASCADE;
+
+CREATE TABLE independientes_asociacion (
+    agente_code TEXT PRIMARY KEY,
+    agente_nombre TEXT NOT NULL,
+    es_miembro_asociacion BOOLEAN NOT NULL, -- true = pagó el estudio, false = otro independiente
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Vista para identificar rápidamente a los independientes
+CREATE OR REPLACE VIEW v_agentes_independientes AS
+SELECT
+    agente_code,
+    agente_nombre,
+    es_miembro_asociacion,
+    CASE WHEN es_miembro_asociacion THEN 'Miembro (pagó estudio)' ELSE 'No miembro' END AS tipo_independiente
+FROM independientes_asociacion;
+
+-- Parámetro para activar análisis solo de independientes
+INSERT INTO params_pui (param_name, param_value, description) VALUES
+('p_solo_independientes', 1, '1=Análisis solo independientes, 0=Todos los agentes')
+ON CONFLICT (param_name) DO UPDATE SET param_value = 1, description = '1=Análisis solo independientes, 0=Todos los agentes';
+
+-- Función para verificar si un agente es independiente
+CREATE OR REPLACE FUNCTION es_independiente(p_agente_code TEXT) RETURNS BOOLEAN AS $$
+    SELECT EXISTS (
+        SELECT 1 FROM independientes_asociacion 
+        WHERE agente_code = p_agente_code
+    );
+$$ LANGUAGE SQL STABLE;
+
+-- Función para verificar si un agente es miembro de la asociación
+CREATE OR REPLACE FUNCTION es_miembro(p_agente_code TEXT) RETURNS BOOLEAN AS $$
+    SELECT COALESCE(
+        (SELECT es_miembro_asociacion FROM independientes_asociacion WHERE agente_code = p_agente_code),
+        false
+    );
+$$ LANGUAGE SQL STABLE;

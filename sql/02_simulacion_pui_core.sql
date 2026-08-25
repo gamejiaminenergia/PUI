@@ -16,7 +16,8 @@ WITH params AS (
         to_timestamp(get_param('p_fecha_inicio'))::date AS p_fecha_inicio,
         to_timestamp(get_param('p_fecha_fin'))::date AS p_fecha_fin,
         get_param_bool('p_esquema_competitivo') AS p_esquema_competitivo,
-        get_param('p_cfpui') AS p_cfpui
+        get_param('p_cfpui') AS p_cfpui,
+        get_param_bool('p_solo_independientes') AS p_solo_independientes
 ),
 
 -- ============================================================
@@ -75,15 +76,32 @@ clasificacion_agentes AS (
 ),
 
 -- ============================================================
+-- INFORMACIÓN DE INDEPENDIENTES
+-- ============================================================
+independientes_info AS (
+    SELECT
+        ca.agente_code,
+        ca.vr_total_reg,
+        ca.rol_pui,
+        CASE WHEN ia.agente_code IS NOT NULL THEN true ELSE false END AS es_independiente,
+        CASE WHEN ia.es_miembro_asociacion THEN true ELSE false END AS es_miembro_asociacion,
+        COALESCE(ia.agente_nombre, a.name) AS agente_nombre_independiente
+    FROM clasificacion_agentes ca
+    LEFT JOIN independientes_asociacion ia ON ca.agente_code = ia.agente_code
+    LEFT JOIN dim_agente a ON ca.agente_code = a.agente_code
+    WHERE (NOT (SELECT p_solo_independientes FROM params)) OR ia.agente_code IS NOT NULL
+),
+
+-- ============================================================
 -- PRE-AGREGACIÓN: Totales de demanda por mes
 -- ============================================================
 totales_por_mes AS (
     SELECT
         mes,
         SUM(vr_agente_mes) AS total_vr_mes,
-        SUM(CASE WHEN ca.rol_pui = 'CNIOR' THEN da.vr_agente_mes ELSE 0 END) AS total_vr_cnior_mes
+        SUM(CASE WHEN ii.rol_pui = 'CNIOR' THEN da.vr_agente_mes ELSE 0 END) AS total_vr_cnior_mes
     FROM demanda_agente_mensual da
-    JOIN clasificacion_agentes ca ON da.agente_code = ca.agente_code
+    JOIN independientes_info ii ON da.agente_code = ii.agente_code
     GROUP BY mes
 ),
 
@@ -194,22 +212,50 @@ impacto_agentes AS (
         im.mercado_code,
         im.mes,
         da.agente_code,
-        ca.rol_pui,
+        ii.rol_pui,
+        ii.es_independiente,
+        ii.es_miembro_asociacion,
+        ii.agente_nombre_independiente,
         da.vr_agente_mes AS ventas_reg_kwh,
         -- PUI proporcional al agente
         im.pui_mercado_mes * (da.vr_agente_mes / NULLIF(tp.total_vr_mes, 0)) AS pui_agente_mes,
         -- Giro proporcional (solo CNIOR)
-        CASE WHEN ca.rol_pui = 'CNIOR' AND tp.total_vr_cnior_mes > 0
+        CASE WHEN ii.rol_pui = 'CNIOR' AND tp.total_vr_cnior_mes > 0
             THEN im.giro_obligatorio * (da.vr_agente_mes / tp.total_vr_cnior_mes)
             ELSE 0
         END AS egreso_giro_cior,
         -- Recaudo real proporcional (solo CNIOR)
-        CASE WHEN ca.rol_pui = 'CNIOR' AND tp.total_vr_cnior_mes > 0
+        CASE WHEN ii.rol_pui = 'CNIOR' AND tp.total_vr_cnior_mes > 0
             THEN im.recaudo_real_estimado * (da.vr_agente_mes / tp.total_vr_cnior_mes)
             ELSE 0
         END AS recaudo_real_agente,
         -- Total giros CNIOR del mes (pre-calculado)
         COALESCE(tg.total_giros_cnior_mes, 0) AS total_giros_cnior_mes,
+        -- MÉTRICAS SIMPLES PARA INDEPENDIENTES
+        -- Sobrecosto PUI: diferencia entre giro obligatorio y recaudo real
+        CASE WHEN ii.rol_pui = 'CNIOR' AND ii.es_independiente
+            THEN (im.giro_obligatorio * (da.vr_agente_mes / tp.total_vr_cnior_mes)) - 
+                 (im.recaudo_real_estimado * (da.vr_agente_mes / tp.total_vr_cnior_mes))
+            ELSE 0
+        END AS sobrecosto_pui,
+        -- Pérdida por incobrabilidad como % del giro
+        CASE WHEN ii.rol_pui = 'CNIOR' AND ii.es_independiente AND im.giro_obligatorio > 0
+            THEN ((im.giro_obligatorio - im.recaudo_real_estimado) / im.giro_obligatorio) * 100
+            ELSE 0
+        END AS pct_perdida_incobrabilidad,
+        -- Riesgo de flujo de caja: porcentaje de ingresos comprometidos
+        CASE WHEN ii.rol_pui = 'CNIOR' AND ii.es_independiente
+            THEN (im.giro_obligatorio * (da.vr_agente_mes / tp.total_vr_cnior_mes)) / 
+                 NULLIF(da.vr_agente_mes * (SELECT AVG("PrecPromCont") FROM fact_daily_sistema), 0) * 100
+            ELSE 0
+        END AS riesgo_flujo_caja,
+        -- Tipo de independiente
+        CASE WHEN ii.es_independiente AND ii.es_miembro_asociacion
+            THEN 'Miembro (pagó estudio)' 
+            WHEN ii.es_independiente AND NOT ii.es_miembro_asociacion
+            THEN 'No miembro'
+            ELSE 'No independiente'
+        END AS tipo_independiente,
         -- Parámetros
         (SELECT p_rcpui FROM params) AS param_rcpui,
         (SELECT p_pct_areas_especiales FROM params) AS param_pct_ae,
@@ -218,8 +264,8 @@ impacto_agentes AS (
         (SELECT p_cfpui FROM params) AS param_cfpui
     FROM impacto_mercado im
     JOIN demanda_agente_mensual da ON im.mes = da.mes
-    JOIN clasificacion_agentes ca ON da.agente_code = ca.agente_code
-    JOIN dim_agente a ON ca.agente_code = a.agente_code
+    JOIN independientes_info ii ON da.agente_code = ii.agente_code
+    JOIN dim_agente a ON da.agente_code = a.agente_code
     JOIN totales_por_mes tp ON im.mes = tp.mes
     LEFT JOIN totales_giros_por_mes tg ON im.mes = tg.mes
     WHERE a.activity = 'COMERCIALIZACIÓN'
@@ -232,7 +278,7 @@ flujo_neto AS (
     SELECT
         ia.*,
         cm.mercado_name,
-        a.name AS agente_name,
+        COALESCE(a.name, ia.agente_nombre_independiente) AS agente_name,
         -- INGRESOS PUI facturado
         CASE
             WHEN ia.rol_pui = 'CIOR' THEN

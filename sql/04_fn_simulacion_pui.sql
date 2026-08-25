@@ -10,7 +10,8 @@ CREATE OR REPLACE FUNCTION fn_simulacion_pui(
     p_val_pct_ae NUMERIC DEFAULT 0.10,
     p_val_factor_recaudo NUMERIC DEFAULT 0.92,
     p_val_esquema_comp BOOLEAN DEFAULT false,
-    p_val_cfpui NUMERIC DEFAULT 0.025
+    p_val_cfpui NUMERIC DEFAULT 0.025,
+    p_solo_independientes BOOLEAN DEFAULT true
 ) RETURNS TABLE (
     mercado_code TEXT,
     mercado_name TEXT,
@@ -18,12 +19,17 @@ CREATE OR REPLACE FUNCTION fn_simulacion_pui(
     agente_code TEXT,
     agente_name TEXT,
     rol_pui TEXT,
+    es_independiente BOOLEAN,
+    es_miembro_asociacion BOOLEAN,
     ventas_reg_kwh NUMERIC,
     ingresos_pui_facturado NUMERIC,
     egreso_giro_cior NUMERIC,
     flujo_neto_caja_pui NUMERIC,
     pct_perdida_sobre_giro_cnior NUMERIC,
-    pct_apalancamiento_cior NUMERIC
+    pct_apalancamiento_cior NUMERIC,
+    sobrecosto_pui NUMERIC,
+    pct_perdida_incobrabilidad NUMERIC,
+    riesgo_flujo_caja NUMERIC
 ) AS $$
 BEGIN
     RETURN QUERY
@@ -84,14 +90,27 @@ BEGIN
         FROM cte_ranking
     ),
 
+    -- Información de independientes
+    cte_independientes AS (
+        SELECT
+            cl.a_code,
+            cl.r_total,
+            cl.c_rol,
+            CASE WHEN ia.agente_code IS NOT NULL THEN true ELSE false END AS c_es_independiente,
+            COALESCE(ia.es_miembro_asociacion, false) AS c_es_miembro_asociacion
+        FROM cte_clasif cl
+        LEFT JOIN independientes_asociacion ia ON cl.a_code = ia.agente_code
+        WHERE (NOT p_solo_independientes) OR ia.agente_code IS NOT NULL
+    ),
+
     -- Pre-agregación: totales demanda por mes
     cte_totales_mes AS (
         SELECT
             da.a_mes AS t_mes,
             SUM(da.a_vr_mes) AS t_vr_total,
-            SUM(CASE WHEN cl.c_rol = 'CNIOR' THEN da.a_vr_mes ELSE 0 END) AS t_vr_cnior
+            SUM(CASE WHEN ci.c_rol = 'CNIOR' THEN da.a_vr_mes ELSE 0 END) AS t_vr_cnior
         FROM cte_demanda_agente da
-        JOIN cte_clasif cl ON da.a_code = cl.a_code
+        JOIN cte_independientes ci ON da.a_code = ci.a_code
         GROUP BY da.a_mes
     ),
 
@@ -187,18 +206,37 @@ BEGIN
             im.im_mercado AS ia_mercado,
             im.im_mes AS ia_mes,
             da.a_code AS ia_agente,
-            cl.c_rol AS ia_rol,
+            ci.c_rol AS ia_rol,
+            ci.c_es_independiente AS ia_es_independiente,
+            ci.c_es_miembro_asociacion AS ia_es_miembro_asociacion,
             da.a_vr_mes AS ia_vr,
             im.im_pui * (da.a_vr_mes / NULLIF(tt.t_vr_total, 0)) AS ia_pui,
-            CASE WHEN cl.c_rol = 'CNIOR' AND tt.t_vr_cnior > 0
+            CASE WHEN ci.c_rol = 'CNIOR' AND tt.t_vr_cnior > 0
                 THEN im.im_giro * (da.a_vr_mes / tt.t_vr_cnior)
                 ELSE 0
             END AS ia_giro,
-            CASE WHEN cl.c_rol = 'CNIOR' AND tt.t_vr_cnior > 0
+            CASE WHEN ci.c_rol = 'CNIOR' AND tt.t_vr_cnior > 0
                 THEN im.im_recaudo * (da.a_vr_mes / tt.t_vr_cnior)
                 ELSE 0
             END AS ia_recaudo,
             COALESCE(tg.tg_total, 0) AS ia_total_giros,
+            -- Sobrecosto PUI
+            CASE WHEN ci.c_rol = 'CNIOR' AND ci.c_es_independiente
+                THEN (im.im_giro * (da.a_vr_mes / tt.t_vr_cnior)) -
+                     (im.im_recaudo * (da.a_vr_mes / tt.t_vr_cnior))
+                ELSE 0
+            END AS ia_sobrecosto,
+            -- Pérdida por incobrabilidad
+            CASE WHEN ci.c_rol = 'CNIOR' AND ci.c_es_independiente AND im.im_giro > 0
+                THEN ((im.im_giro - im.im_recaudo) / im.im_giro) * 100
+                ELSE 0
+            END AS ia_pct_perdida,
+            -- Riesgo flujo caja
+            CASE WHEN ci.c_rol = 'CNIOR' AND ci.c_es_independiente
+                THEN (im.im_giro * (da.a_vr_mes / tt.t_vr_cnior)) /
+                     NULLIF(da.a_vr_mes * (SELECT AVG("PrecPromCont") FROM fact_daily_sistema), 0) * 100
+                ELSE 0
+            END AS ia_riesgo_flujo,
             p_val_rcpui AS ia_param_rcpui,
             p_val_pct_ae AS ia_param_pct_ae,
             p_val_factor_recaudo AS ia_param_factor_recaudo,
@@ -206,7 +244,7 @@ BEGIN
             p_val_cfpui AS ia_param_cfpui
         FROM cte_impacto_mercado im
         JOIN cte_demanda_agente da ON im.im_mes = da.a_mes
-        JOIN cte_clasif cl ON da.a_code = cl.a_code
+        JOIN cte_independientes ci ON da.a_code = ci.a_code
         JOIN cte_totales_mes tt ON im.im_mes = tt.t_mes
         LEFT JOIN cte_totales_giros tg ON im.im_mes = tg.tg_mes
     ),
@@ -216,7 +254,7 @@ BEGIN
         SELECT
             ia.*,
             cm.mercado_name AS fn_mercado_name,
-            a.name AS fn_agente_name,
+            COALESCE(a.name, ia.ia_agente) AS fn_agente_name,
             CASE
                 WHEN ia.ia_rol = 'CIOR' THEN
                     ia.ia_pui + ia.ia_total_giros
@@ -248,12 +286,17 @@ BEGIN
         fn.ia_agente::TEXT,
         fn.fn_agente_name::TEXT,
         fn.ia_rol::TEXT,
+        fn.ia_es_independiente::BOOLEAN,
+        fn.ia_es_miembro_asociacion::BOOLEAN,
         fn.ia_vr::NUMERIC,
         fn.fn_ingresos::NUMERIC,
         fn.ia_giro::NUMERIC,
         fn.fn_flujo_neto::NUMERIC,
         fn.fn_pct_perdida::NUMERIC,
-        fn.fn_pct_apalancamiento::NUMERIC
+        fn.fn_pct_apalancamiento::NUMERIC,
+        fn.ia_sobrecosto::NUMERIC,
+        fn.ia_pct_perdida::NUMERIC,
+        fn.ia_riesgo_flujo::NUMERIC
     FROM cte_flujo_neto fn;
 END;
 $$ LANGUAGE plpgsql;
