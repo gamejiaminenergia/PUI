@@ -30,6 +30,18 @@
 | **Áreas Especiales** | Zonas geográficas donde la distribución presenta pérdidas elevadas y dificultad de acceso, definidas por la CREG. |
 | **Recaudo Real** | Porcentaje de la facturación efectivamente cobrada a los usuarios. Factor clave de riesgo financiero. |
 | **Giro Obligatorio** | Transferencia de dinero que el CNIOR debe realizar al CIOR independientemente de si recaudó o no de los usuarios. |
+| **Pérdida PUI** | Pérdida financiera del agente por incobrabilidad del mecanismo PUI. Se calcula como: Giros Obligatorios × (1 − Factor Recaudo). No confundir con la pérdida operativa total del agente. |
+| **CompContEner** | Campo de BD: Compra por Contratos Bilaterales (GWh). Energía adquirida mediante acuerdos directos con generadores. |
+| **CompBolsaNacionalEner** | Campo de BD: Compra en Bolsa Nacional (GWh). Energía comprada en el Mercado de Energía Mayorista. |
+| **CompBolsaInternacionalEner** | Campo de BD: Compra en Bolsa Internacional (GWh). Energía importada de mercados vecinos. |
+| **CompBolsaTIEEner** | Campo de BD: Compra en Bolsa TIE (GWh). Transacciones de Interconexión Externa. |
+| **VentContEner** | Campo de BD: Venta por Contratos (GWh). Energía vendida directamente a usuarios mediante contratos. |
+| **VentBolsaNacionalEner** | Campo de BD: Venta en Bolsa Nacional (GWh). Energía vendida en el mercado mayorista. |
+| **VentBolsaInternacionalEner** | Campo de BD: Venta en Bolsa Internacional (GWh). Energía exportada a mercados vecinos. |
+| **VentBolsaTIEEner** | Campo de BD: Venta en Bolsa TIE (GWh). Transferencias de Interconexión Externa. |
+| **DemaComeReg** | Campo de BD: Demanda Comercializada Regulada (GWh). Energía atendida a usuarios regulados por CREG. |
+| **DemaComeNoReg** | Campo de BD: Demanda Comercializada No Regulada (GWh). Energía en segmento de libre competencia. |
+| **DemaCome** | Campo de BD: Demanda Comercializada Total (GWh). Suma de regulada y no regulada. |
 
 ---
 
@@ -171,63 +183,95 @@ Pérdida_i,m = Giro_i,m × (1 - Factor_Recaudo)
 
 **Orden:** Por volumen de compra total (mayor a menor)
 
-| # | Agente | Miembro | Compra Contratos | Compra Bolsa | Compra Total | % Contratos | Venta Contratos | Venta Bolsa | Demanda Reg | Demanda No Reg | Demanda Total | % Dem Reg | Pérdidas | % Pérd |
-|---|--------|---------|------------------|--------------|--------------|-------------|-----------------|-------------|-------------|----------------|---------------|-----------|----------|--------|
-| 1 | VATIA S.A. E.S.P. | Sí | 5,450.72 | 602.62 | 6,053.35 | 90.0% | 1,704.29 | 88.58 | 4,008.43 | 434.16 | 4,442.59 | 90.2% | 64.90 | 1.46% |
-| 2 | SOUTH32 ENERGY S.A.S E.S.P | No | 3,605.83 | 5.54 | 3,611.37 | 99.8% | 375.94 | 0.00 | 0.00 | 3,394.71 | 3,394.71 | 0.0% | 50.60 | 1.49% |
-| 3 | RUITOQUE S.A. E.S.P. | Sí | 2,859.27 | 131.86 | 2,991.13 | 95.6% | 2,161.41 | 110.35 | 250.13 | 520.70 | 770.84 | 32.4% | 11.47 | 1.49% |
-| 4 | COENERSA S.A.S. E.S.P. | No | 2,612.08 | 41.40 | 2,653.48 | 98.4% | 2,388.46 | 259.66 | 0.00 | 0.00 | 0.00 | 0% | 0.00 | 0% |
-| 5 | NEU ENERGY S.A.S E.S.P | Sí | 1,819.00 | 146.63 | 1,965.64 | 92.5% | 675.18 | 164.48 | 802.93 | 418.55 | 1,221.48 | 65.7% | 18.33 | 1.50% |
-| 6 | PROENERGY S.A.S.E.S.P. | No | 1,766.71 | 0.08 | 1,766.79 | 100.0% | 1,555.97 | 210.66 | 0.00 | 0.00 | 0.00 | 0% | 0.00 | 0% |
-| 7 | QI ENERGY S.A.S. E.S.P. | Sí | 1,346.82 | 68.58 | 1,415.40 | 95.2% | 531.30 | 152.60 | 688.78 | 76.24 | 765.02 | 90.0% | 11.04 | 1.44% |
-| 8 | ENERTOTAL S.A. E.S.P. | Sí | 1,402.98 | 2.60 | 1,405.58 | 99.8% | 40.98 | 0.00 | 797.83 | 641.98 | 1,439.82 | 55.4% | 20.98 | 1.46% |
-| 9 | FUENTES DE ENERGIAS RENOVABLES | Sí | 1,211.91 | 2.65 | 1,214.55 | 99.8% | 788.05 | 219.82 | 0.00 | 222.15 | 222.15 | 0.0% | 3.35 | 1.51% |
-| 10 | ENERGETICOS S.A.S E.S.P | Sí | 1,015.38 | 1.66 | 1,017.04 | 99.8% | 699.20 | 318.04 | 0.00 | 0.00 | 0.00 | 0% | 0.00 | 0% |
-| 11 | PROFESIONALES EN ENERGIA S.A. E.S.P. | No | 800.78 | 11.51 | 812.29 | 98.6% | 752.84 | 51.18 | 3.34 | 6.32 | 9.66 | 34.6% | 0.14 | 1.42% |
-| 12 | DRUMMOND POWER S.A.S. E.S.P. | No | 585.55 | 171.52 | 757.07 | 77.3% | 22.28 | 121.65 | 0.00 | 653.92 | 653.92 | 0.0% | 10.50 | 1.61% |
-| 13 | CEMEX ENERGY S.A.S E.S.P. | No | 603.88 | 124.12 | 728.00 | 83.0% | 19.06 | 65.37 | 0.00 | 676.27 | 676.27 | 0.0% | 10.37 | 1.53% |
-| 14 | ENERGIA Y GAS DE COLOMBIA SAS ESP | Sí | 709.35 | 5.17 | 714.52 | 99.3% | 617.71 | 94.08 | 0.00 | 0.00 | 0.00 | 0% | 0.00 | 0% |
-| 15 | ESPACIO PRODUCTIVO S.A.S. E.S.P. | No | 701.40 | 0.00 | 701.40 | 100.0% | 701.05 | 0.35 | 0.00 | 0.00 | 0.00 | 0% | 0.00 | 0% |
-| 16 | ENERCO S.A. E.S.P. | Sí | 625.13 | 2.21 | 627.34 | 99.7% | 625.87 | 0.00 | 0.00 | 0.00 | 0.00 | 0% | 0.00 | 0% |
-| 17 | ENERVISA S.A.S E.S.P. | No | 618.77 | 2.23 | 620.99 | 99.6% | 620.99 | 0.00 | 0.00 | 0.00 | 0.00 | 0% | 0.00 | 0% |
-| 18 | AMPERIA S.A. E.S.P. | No | 575.91 | 7.40 | 583.32 | 98.7% | 515.87 | 41.72 | 0.00 | 0.00 | 0.00 | 0% | 0.00 | 0% |
-| 19 | TERPEL ENERGÍA S.A.S. E.S.P. | No | 520.17 | 43.74 | 563.91 | 92.2% | 281.60 | 20.08 | 29.77 | 242.08 | 271.85 | 10.9% | 4.35 | 1.60% |
-| 20 | ENERBIT S.A.S. E.S.P. | No | 524.45 | 8.25 | 532.69 | 98.5% | 12.56 | 297.41 | 224.33 | 21.75 | 246.07 | 91.2% | 3.94 | 1.60% |
-| 21 | ENERGIA LIMPIA Y EFICIENTE S.A.S ESP | No | 524.02 | 0.84 | 524.86 | 99.8% | 524.19 | 0.00 | 0.00 | 0.00 | 0.00 | 0% | 0.00 | 0% |
-| 22 | SPECTRUM RENOVAVEIS S.A.S. E.S.P. | No | 508.40 | 10.84 | 519.24 | 97.9% | 466.11 | 43.62 | 0.00 | 9.59 | 9.59 | 0.0% | 0.15 | 1.56% |
-| 23 | ITALCOL ENERGIA S.A. E.S.P. | Sí | 445.05 | 29.85 | 474.89 | 93.7% | 78.29 | 28.98 | 0.35 | 386.94 | 387.29 | 0.1% | 5.81 | 1.50% |
-| 24 | GREENYELLOW COMERCIALIZADORA S.A.S. E.S.P. | No | 383.03 | 30.91 | 413.94 | 92.5% | 335.52 | 24.31 | 0.00 | 57.27 | 57.27 | 0.0% | 0.86 | 1.50% |
-| 25 | ECOMMERCIAL S.A.S. E.S.P. | No | 411.69 | 1.56 | 413.26 | 99.6% | 397.01 | 7.19 | 0.00 | 0.00 | 0.00 | 0% | 0.00 | 0% |
-| 26 | DUCK ENERGY S.A.S ESP | No | 287.90 | 62.36 | 350.26 | 82.2% | 289.12 | 63.07 | 0.00 | 0.00 | 0.00 | 0% | 0.00 | 0% |
-| 27 | IA ENERGÍA Y GESTIÓN S.A.S. E.S.P. | No | 326.48 | 0.11 | 326.58 | 99.9% | 315.72 | 11.19 | 0.00 | 0.00 | 0.00 | 0% | 0.00 | 0% |
-| 28 | MERELEC COLOMBIA S.A.S. E.S.P. | Sí | 307.10 | 9.89 | 316.99 | 96.9% | 313.63 | 5.02 | 0.00 | 0.00 | 0.00 | 0% | 0.00 | 0% |
-| 29 | ENERXIA COLOMBIA SAS ESP - COMERCIALIZADOR | Sí | 252.73 | 47.92 | 300.65 | 84.1% | 73.97 | 25.69 | 0.00 | 214.55 | 214.55 | 0.0% | 3.22 | 1.50% |
-| 30 | MESSER ENERGY SERVICES SAS ESP | No | 248.46 | 37.70 | 286.16 | 86.8% | 173.51 | 9.14 | 0.00 | 108.48 | 108.48 | 0.0% | 1.63 | 1.50% |
-| 31 | SANTA FE ENERGY ZOMAC S.A.S. E.S.P. | Sí | 236.29 | 6.28 | 242.57 | 97.4% | 198.44 | 41.82 | 0.00 | 0.00 | 0.00 | 0% | 0.00 | 0% |
-| 32 | CEE ENERGY SAS ESP | No | 177.39 | 43.89 | 221.28 | 80.2% | 166.58 | 56.63 | 0.00 | 0.00 | 0.00 | 0% | 0.00 | 0% |
-| 33 | FRANCA ENERGIA SA ESP | No | 179.48 | 27.13 | 206.61 | 86.9% | 8.83 | 3.87 | 0.00 | 203.03 | 203.03 | 0.0% | 3.05 | 1.50% |
-| 34 | GAP ENERGY GROUP SAS ESP | No | 153.96 | 34.24 | 188.20 | 81.8% | 4.21 | 9.77 | 0.00 | 181.79 | 181.79 | 0.0% | 2.73 | 1.50% |
-| 35 | COLOMBINA ENERGIA SAS ESP | Sí | 154.93 | 14.47 | 169.40 | 91.5% | 3.99 | 3.77 | 0.00 | 169.05 | 169.05 | 0.0% | 2.54 | 1.50% |
-| 36 | SOL & CIELO ENERGIA S.A.S. E.S.P | Sí | 128.23 | 4.76 | 133.00 | 96.4% | 56.71 | 51.44 | 21.26 | 6.88 | 28.14 | 75.5% | 0.42 | 1.49% |
-| 37 | CARBOENERGY SAS ESP | No | 111.21 | 0.00 | 111.21 | 100.0% | 109.58 | 1.63 | 0.00 | 0.00 | 0.00 | 0% | 0.00 | 0% |
-| 38 | COLENERGIA S.A. E.S.P. | No | 83.47 | 2.86 | 86.32 | 96.7% | 71.28 | 15.47 | 0.00 | 0.00 | 0.00 | 0% | 0.00 | 0% |
-| 39 | A.S.C. INGENIERIA S.A. E.S.P. | Sí | 73.07 | 0.00 | 73.07 | 100.0% | 2.02 | 0.00 | 54.01 | 20.74 | 74.75 | 72.3% | 1.12 | 1.50% |
-| 40 | VOLTAJE EMPRESARIAL S.A.S. E.S.P. | No | 55.86 | 12.79 | 68.66 | 81.4% | 3.74 | 24.40 | 0.00 | 47.23 | 47.23 | 0.0% | 0.71 | 1.50% |
-| 41 | BEAM ENERGY INNOVATION S.A.S. E.S.P. | No | 56.39 | 3.53 | 59.92 | 94.1% | 30.14 | 10.94 | 4.47 | 17.90 | 22.37 | 20.0% | 0.34 | 1.52% |
-| 42 | DICELER S.A. E.S.P. | Sí | 54.70 | 4.31 | 59.01 | 92.7% | 24.62 | 22.36 | 12.79 | 0.00 | 12.79 | 100.0% | 0.19 | 1.49% |
-| 43 | DEPI ENERGY S.A.S. E.S.P. | Sí | 51.37 | 5.58 | 56.95 | 90.2% | 41.27 | 16.49 | 0.00 | 0.00 | 0.00 | 0% | 0.00 | 0% |
-| 44 | LUMINA ENERGY S.A.S. E.S.P. | No | 48.10 | 0.00 | 48.10 | 100.0% | 25.98 | 24.13 | 0.00 | 0.00 | 0.00 | 0% | 0.00 | 0% |
-| 45 | RIOPAILA ENERGÍA S.A.S. E.S.P. | No | 0.00 | 22.18 | 22.18 | 0.0% | 0.00 | 0.00 | 0.00 | 21.94 | 21.94 | 0.0% | 0.33 | 1.50% |
-| 46 | ÉRGON ENERGY SAS ESP | No | 21.88 | 0.00 | 21.89 | 100.0% | 20.99 | 0.90 | 0.00 | 0.00 | 0.00 | 0% | 0.00 | 0% |
-| 47 | ENERMAS SAS ESP | No | 16.36 | 2.71 | 19.08 | 85.7% | 16.70 | 2.37 | 0.00 | 0.00 | 0.00 | 0% | 0.00 | 0% |
-| 48 | UNERGY ENERGY DIGITAL S.A.S E.S.P | No | 12.45 | 0.00 | 12.45 | 100.0% | 0.29 | 12.87 | 0.00 | 0.00 | 0.00 | 0% | 0.00 | 0% |
-| 49 | EMPRESA SIGLO XXI EICE ESP | No | 9.98 | 2.41 | 12.39 | 80.5% | 0.27 | 1.39 | 11.22 | 0.00 | 11.22 | 100.0% | 0.17 | 1.51% |
-| 50 | SOUL ENERGY SAS ESP | No | 7.32 | 0.00 | 7.32 | 100.0% | 7.32 | 0.00 | 0.00 | 0.00 | 0.00 | 0% | 0.00 | 0% |
-| 51 | NEXTGY S.A.S. E.S.P | No | 2.39 | 0.00 | 2.39 | 100.0% | 0.49 | 2.88 | 0.00 | 0.00 | 0.00 | 0% | 0.00 | 0% |
-| 52 | SOL DEL EJE S.A.S E.S.P | No | 0.02 | 0.00 | 0.02 | 100.0% | 0.00 | 0.02 | 0.00 | 0.00 | 0.00 | 0% | 0.00 | 0% |
-| 53 | DEMAND RESPONSE SAS ESP | No | 0.00 | 0.00 | 0.00 | — | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0% | 0.00 | 0% |
+**Unidad de medida:** Todas las columnas de energía están en **GWh (Gigavatios-hora)**, equivalente a 1,000 MWh o 1,000,000 kWh.
 
-**Unidades:** GWh (Gigavatios-hora)
+#### Leyenda de Variables
+
+| Columna | Descripción | Fórmula / Nota |
+|---------|-------------|----------------|
+| **#** | Número consecutivo de identificación | Orden descendente por Compra Total |
+| **Agente** | Razón social del comercializador independiente (CNIOR) | Clasificación por actividad COMERCIALIZACIÓN |
+| **Miembro** | Indica si el agente es miembro de la asociación que contrató el estudio | Sí/No — No implica diferencia de riesgo |
+| **Compra Contratos** | Energía adquirida mediante contratos bilaterales con generadores | Campo `CompContEner` de la BD (GWh) |
+| **Compra Bolsa** | Energía adquirida en mercados spot: Nacional + Internacional + TIE | Suma de `CompBolsaNacionalEner`, `CompBolsaInternacionalEner`, `CompBolsaTIEEner` (GWh) |
+| **Compra Total** | Compra Contratos + Compra Bolsa | Volumen total de energía comprada por el agente |
+| **% Contratos** | Porcentaje de compra que se realiza vía contratos bilaterales | = Compra Contratos / Compra Total × 100 |
+| **% Bolsa** | Porcentaje de compra que se realiza en mercados spot (exposición a precios variables) | = Compra Bolsa / Compra Total × 100 — Mayor % = Mayor volatilidad de costos |
+| **Venta Contratos** | Energía vendida mediante contratos directos a usuarios | Campo `VentContEner` de la BD (GWh) |
+| **Venta Bolsa** | Energía vendida en mercados mayoristas | Suma de `VentBolsaNacionalEner`, `VentBolsaInternacionalEner`, `VentBolsaTIEEner` (GWh) |
+| **Demanda Reg** | Demanda regulada atendida por el agente (usuarios CREG) | Campo `DemaComeReg` de la BD (GWh) |
+| **Demanda No Reg** | Demanda no regulada (usuarios en libre competencia) | Campo `DemaComeNoReg` de la BD (GWh) |
+| **Demanda Total** | Demanda Reg + Demanda No Reg | Volumen total de energía comercializada |
+| **% Dem Reg** | Porcentaje de la demanda que es regulada | = Demanda Reg / Demanda Total × 100 — Mayor % = Mayor exposición al PUI |
+| **Pérdida PUI** | Pérdida financiera del agente por incobrabilidad del PUI | = Giros Obligatorios PUI × (1 − Factor Recaudo) = 8% de los giros |
+| **% Pérd PUI** | Pérdida PUI como porcentaje de la demanda total del agente | = Pérdida PUI / Demanda Total × 100 |
+
+#### Notas Interpretativas
+
+- **Demanda Reg > 0:** Agente con usuarios regulados → expuesto al riesgo de incobrabilidad del PUI (Art. 12 CREG)
+- **Demanda Reg = 0:** Agente sin usuarios regulados → no genera giros obligatorios al PUI
+- **% Contratos bajo:** Mayor exposición a precios spot de bolsa (volatilidad de compra)
+- **% Pérd PUI = 0:** Agente sin demanda regulada en el período → no tiene pérdida por PUI
+- **Pérdida PUI ≠ Pérdida operativa:** Esta columna solo refleja la pérdida por incobrabilidad del mecanismo PUI, no la utilidad o pérdida total del agente
+
+| # | Agente | Miembro | Compra Contratos | Compra Bolsa | Compra Total | % Contratos | % Bolsa | Venta Contratos | Venta Bolsa | Demanda Reg | Demanda No Reg | Demanda Total | % Dem Reg | Pérdida PUI | % Pérd PUI |
+|---|--------|---------|------------------|--------------|--------------|-------------|---------|-----------------|-------------|-------------|----------------|---------------|-----------|------------|----------|
+| 1 | VATIA S.A. E.S.P. | Sí | 5,450.72 | 602.62 | 6,053.35 | 90.0% | 10.0% | 1,704.29 | 88.58 | 4,008.43 | 434.16 | 4,442.59 | 90.2% | 64.90 | 1.46% |
+| 2 | SOUTH32 ENERGY S.A.S E.S.P | No | 3,605.83 | 5.54 | 3,611.37 | 99.8% | 0.2% | 375.94 | 0.00 | 0.00 | 3,394.71 | 3,394.71 | 0.0% | 50.60 | 1.49% |
+| 3 | RUITOQUE S.A. E.S.P. | Sí | 2,859.27 | 131.86 | 2,991.13 | 95.6% | 4.4% | 2,161.41 | 110.35 | 250.13 | 520.70 | 770.84 | 32.4% | 11.47 | 1.49% |
+| 4 | COENERSA S.A.S. E.S.P. | No | 2,612.08 | 41.40 | 2,653.48 | 98.4% | 1.6% | 2,388.46 | 259.66 | 0.00 | 0.00 | 0.00 | 0% | 0.00 | 0% |
+| 5 | NEU ENERGY S.A.S E.S.P | Sí | 1,819.00 | 146.63 | 1,965.64 | 92.5% | 7.5% | 675.18 | 164.48 | 802.93 | 418.55 | 1,221.48 | 65.7% | 18.33 | 1.50% |
+| 6 | PROENERGY S.A.S.E.S.P. | No | 1,766.71 | 0.08 | 1,766.79 | 100.0% | 0.0% | 1,555.97 | 210.66 | 0.00 | 0.00 | 0.00 | 0% | 0.00 | 0% |
+| 7 | QI ENERGY S.A.S. E.S.P. | Sí | 1,346.82 | 68.58 | 1,415.40 | 95.2% | 4.8% | 531.30 | 152.60 | 688.78 | 76.24 | 765.02 | 90.0% | 11.04 | 1.44% |
+| 8 | ENERTOTAL S.A. E.S.P. | Sí | 1,402.98 | 2.60 | 1,405.58 | 99.8% | 0.2% | 40.98 | 0.00 | 797.83 | 641.98 | 1,439.82 | 55.4% | 20.98 | 1.46% |
+| 9 | FUENTES DE ENERGIAS RENOVABLES | Sí | 1,211.91 | 2.65 | 1,214.55 | 99.8% | 0.2% | 788.05 | 219.82 | 0.00 | 222.15 | 222.15 | 0.0% | 3.35 | 1.51% |
+| 10 | ENERGETICOS S.A.S E.S.P | Sí | 1,015.38 | 1.66 | 1,017.04 | 99.8% | 0.2% | 699.20 | 318.04 | 0.00 | 0.00 | 0.00 | 0% | 0.00 | 0% |
+| 11 | PROFESIONALES EN ENERGIA S.A. E.S.P. | No | 800.78 | 11.51 | 812.29 | 98.6% | 1.4% | 752.84 | 51.18 | 3.34 | 6.32 | 9.66 | 34.6% | 0.14 | 1.42% |
+| 12 | DRUMMOND POWER S.A.S. E.S.P. | No | 585.55 | 171.52 | 757.07 | 77.3% | 22.7% | 22.28 | 121.65 | 0.00 | 653.92 | 653.92 | 0.0% | 10.50 | 1.61% |
+| 13 | CEMEX ENERGY S.A.S E.S.P. | No | 603.88 | 124.12 | 728.00 | 83.0% | 17.0% | 19.06 | 65.37 | 0.00 | 676.27 | 676.27 | 0.0% | 10.37 | 1.53% |
+| 14 | ENERGIA Y GAS DE COLOMBIA SAS ESP | Sí | 709.35 | 5.17 | 714.52 | 99.3% | 0.7% | 617.71 | 94.08 | 0.00 | 0.00 | 0.00 | 0% | 0.00 | 0% |
+| 15 | ESPACIO PRODUCTIVO S.A.S. E.S.P. | No | 701.40 | 0.00 | 701.40 | 100.0% | 0.0% | 701.05 | 0.35 | 0.00 | 0.00 | 0.00 | 0% | 0.00 | 0% |
+| 16 | ENERCO S.A. E.S.P. | Sí | 625.13 | 2.21 | 627.34 | 99.7% | 0.4% | 625.87 | 0.00 | 0.00 | 0.00 | 0.00 | 0% | 0.00 | 0% |
+| 17 | ENERVISA S.A.S E.S.P. | No | 618.77 | 2.23 | 620.99 | 99.6% | 0.4% | 620.99 | 0.00 | 0.00 | 0.00 | 0.00 | 0% | 0.00 | 0% |
+| 18 | AMPERIA S.A. E.S.P. | No | 575.91 | 7.40 | 583.32 | 98.7% | 1.3% | 515.87 | 41.72 | 0.00 | 0.00 | 0.00 | 0% | 0.00 | 0% |
+| 19 | TERPEL ENERGÍA S.A.S. E.S.P. | No | 520.17 | 43.74 | 563.91 | 92.2% | 7.8% | 281.60 | 20.08 | 29.77 | 242.08 | 271.85 | 10.9% | 4.35 | 1.60% |
+| 20 | ENERBIT S.A.S. E.S.P. | No | 524.45 | 8.25 | 532.69 | 98.5% | 1.5% | 12.56 | 297.41 | 224.33 | 21.75 | 246.07 | 91.2% | 3.94 | 1.60% |
+| 21 | ENERGIA LIMPIA Y EFICIENTE S.A.S ESP | No | 524.02 | 0.84 | 524.86 | 99.8% | 0.2% | 524.19 | 0.00 | 0.00 | 0.00 | 0.00 | 0% | 0.00 | 0% |
+| 22 | SPECTRUM RENOVAVEIS S.A.S. E.S.P. | No | 508.40 | 10.84 | 519.24 | 97.9% | 2.1% | 466.11 | 43.62 | 0.00 | 9.59 | 9.59 | 0.0% | 0.15 | 1.56% |
+| 23 | ITALCOL ENERGIA S.A. E.S.P. | Sí | 445.05 | 29.85 | 474.89 | 93.7% | 6.3% | 78.29 | 28.98 | 0.35 | 386.94 | 387.29 | 0.1% | 5.81 | 1.50% |
+| 24 | GREENYELLOW COMERCIALIZADORA S.A.S. E.S.P. | No | 383.03 | 30.91 | 413.94 | 92.5% | 7.5% | 335.52 | 24.31 | 0.00 | 57.27 | 57.27 | 0.0% | 0.86 | 1.50% |
+| 25 | ECOMMERCIAL S.A.S. E.S.P. | No | 411.69 | 1.56 | 413.26 | 99.6% | 0.4% | 397.01 | 7.19 | 0.00 | 0.00 | 0.00 | 0% | 0.00 | 0% |
+| 26 | DUCK ENERGY S.A.S ESP | No | 287.90 | 62.36 | 350.26 | 82.2% | 17.8% | 289.12 | 63.07 | 0.00 | 0.00 | 0.00 | 0% | 0.00 | 0% |
+| 27 | IA ENERGÍA Y GESTIÓN S.A.S. E.S.P. | No | 326.48 | 0.11 | 326.58 | 99.9% | 0.0% | 315.72 | 11.19 | 0.00 | 0.00 | 0.00 | 0% | 0.00 | 0% |
+| 28 | MERELEC COLOMBIA S.A.S. E.S.P. | Sí | 307.10 | 9.89 | 316.99 | 96.9% | 3.1% | 313.63 | 5.02 | 0.00 | 0.00 | 0.00 | 0% | 0.00 | 0% |
+| 29 | ENERXIA COLOMBIA SAS ESP - COMERCIALIZADOR | Sí | 252.73 | 47.92 | 300.65 | 84.1% | 15.9% | 73.97 | 25.69 | 0.00 | 214.55 | 214.55 | 0.0% | 3.22 | 1.50% |
+| 30 | MESSER ENERGY SERVICES SAS ESP | No | 248.46 | 37.70 | 286.16 | 86.8% | 13.2% | 173.51 | 9.14 | 0.00 | 108.48 | 108.48 | 0.0% | 1.63 | 1.50% |
+| 31 | SANTA FE ENERGY ZOMAC S.A.S. E.S.P. | Sí | 236.29 | 6.28 | 242.57 | 97.4% | 2.6% | 198.44 | 41.82 | 0.00 | 0.00 | 0.00 | 0% | 0.00 | 0% |
+| 32 | CEE ENERGY SAS ESP | No | 177.39 | 43.89 | 221.28 | 80.2% | 19.8% | 166.58 | 56.63 | 0.00 | 0.00 | 0.00 | 0% | 0.00 | 0% |
+| 33 | FRANCA ENERGIA SA ESP | No | 179.48 | 27.13 | 206.61 | 86.9% | 13.1% | 8.83 | 3.87 | 0.00 | 203.03 | 203.03 | 0.0% | 3.05 | 1.50% |
+| 34 | GAP ENERGY GROUP SAS ESP | No | 153.96 | 34.24 | 188.20 | 81.8% | 18.2% | 4.21 | 9.77 | 0.00 | 181.79 | 181.79 | 0.0% | 2.73 | 1.50% |
+| 35 | COLOMBINA ENERGIA SAS ESP | Sí | 154.93 | 14.47 | 169.40 | 91.5% | 8.5% | 3.99 | 3.77 | 0.00 | 169.05 | 169.05 | 0.0% | 2.54 | 1.50% |
+| 36 | SOL & CIELO ENERGIA S.A.S. E.S.P | Sí | 128.23 | 4.76 | 133.00 | 96.4% | 3.6% | 56.71 | 51.44 | 21.26 | 6.88 | 28.14 | 75.5% | 0.42 | 1.49% |
+| 37 | CARBOENERGY SAS ESP | No | 111.21 | 0.00 | 111.21 | 100.0% | 0.0% | 109.58 | 1.63 | 0.00 | 0.00 | 0.00 | 0% | 0.00 | 0% |
+| 38 | COLENERGIA S.A. E.S.P. | No | 83.47 | 2.86 | 86.32 | 96.7% | 3.3% | 71.28 | 15.47 | 0.00 | 0.00 | 0.00 | 0% | 0.00 | 0% |
+| 39 | A.S.C. INGENIERIA S.A. E.S.P. | Sí | 73.07 | 0.00 | 73.07 | 100.0% | 0.0% | 2.02 | 0.00 | 54.01 | 20.74 | 74.75 | 72.3% | 1.12 | 1.50% |
+| 40 | VOLTAJE EMPRESARIAL S.A.S. E.S.P. | No | 55.86 | 12.79 | 68.66 | 81.4% | 18.6% | 3.74 | 24.40 | 0.00 | 47.23 | 47.23 | 0.0% | 0.71 | 1.50% |
+| 41 | BEAM ENERGY INNOVATION S.A.S. E.S.P. | No | 56.39 | 3.53 | 59.92 | 94.1% | 5.9% | 30.14 | 10.94 | 4.47 | 17.90 | 22.37 | 20.0% | 0.34 | 1.52% |
+| 42 | DICELER S.A. E.S.P. | Sí | 54.70 | 4.31 | 59.01 | 92.7% | 7.3% | 24.62 | 22.36 | 12.79 | 0.00 | 12.79 | 100.0% | 0.19 | 1.49% |
+| 43 | DEPI ENERGY S.A.S. E.S.P. | Sí | 51.37 | 5.58 | 56.95 | 90.2% | 9.8% | 41.27 | 16.49 | 0.00 | 0.00 | 0.00 | 0% | 0.00 | 0% |
+| 44 | LUMINA ENERGY S.A.S. E.S.P. | No | 48.10 | 0.00 | 48.10 | 100.0% | 0.0% | 25.98 | 24.13 | 0.00 | 0.00 | 0.00 | 0% | 0.00 | 0% |
+| 45 | RIOPAILA ENERGÍA S.A.S. E.S.P. | No | 0.00 | 22.18 | 22.18 | 0.0% | 100.0% | 0.00 | 0.00 | 0.00 | 21.94 | 21.94 | 0.0% | 0.33 | 1.50% |
+| 46 | ÉRGON ENERGY SAS ESP | No | 21.88 | 0.00 | 21.89 | 100.0% | 0.0% | 20.99 | 0.90 | 0.00 | 0.00 | 0.00 | 0% | 0.00 | 0% |
+| 47 | ENERMAS SAS ESP | No | 16.36 | 2.71 | 19.08 | 85.7% | 14.2% | 16.70 | 2.37 | 0.00 | 0.00 | 0.00 | 0% | 0.00 | 0% |
+| 48 | UNERGY ENERGY DIGITAL S.A.S E.S.P | No | 12.45 | 0.00 | 12.45 | 100.0% | 0.0% | 0.29 | 12.87 | 0.00 | 0.00 | 0.00 | 0% | 0.00 | 0% |
+| 49 | EMPRESA SIGLO XXI EICE ESP | No | 9.98 | 2.41 | 12.39 | 80.5% | 19.5% | 0.27 | 1.39 | 11.22 | 0.00 | 11.22 | 100.0% | 0.17 | 1.51% |
+| 50 | SOUL ENERGY SAS ESP | No | 7.32 | 0.00 | 7.32 | 100.0% | 0.0% | 7.32 | 0.00 | 0.00 | 0.00 | 0.00 | 0% | 0.00 | 0% |
+| 51 | NEXTGY S.A.S. E.S.P | No | 2.39 | 0.00 | 2.39 | 100.0% | 0.0% | 0.49 | 2.88 | 0.00 | 0.00 | 0.00 | 0% | 0.00 | 0% |
+| 52 | SOL DEL EJE S.A.S E.S.P | No | 0.02 | 0.00 | 0.02 | 100.0% | 0.0% | 0.00 | 0.02 | 0.00 | 0.00 | 0.00 | 0% | 0.00 | 0% |
+| 53 | DEMAND RESPONSE SAS ESP | No | 0.00 | 0.00 | 0.00 | — | — | 0.00 | 0.00 | 0.00 | 0.00 | 0.00 | 0% | 0.00 | 0% |
+
+**Fuente de datos:** Tabla `fact_hourly_agente` de la BD XM/SIN. **Período:** Enero 2024 — Agosto 2026.
+**Fórmula de Pérdida PUI:** Pérdida PUI = Giros Obligatorios PUI × (1 − Factor Recaudo), donde Factor Recaudo = 0.92 (Art. 12 CREG).
 
 ### 6.2 Resumen Estadístico de Operación
 
@@ -240,7 +284,7 @@ Pérdida_i,m = Giro_i,m × (1 - Factor_Recaudo)
 | **Demanda regulada (GWh)** | 7,560 |
 | **% Demanda regulada** | 40.1% |
 | **Compra promedio por contratos** | 93.5% |
-| **Pérdida promedio por PUI** | 1.49% |
+| **Pérdida PUI promedio** | 1.49% |
 
 ### 6.3 Análisis por Tipo de Operación
 
@@ -253,9 +297,9 @@ Pérdida_i,m = Giro_i,m × (1 - Factor_Recaudo)
 
 ## 7. ANÁLISIS DE SENSIBILIDAD
 
-### 7.1 Impacto del Factor de Recaudo
+### 7.1 Impacto del Factor de Recaudo en Pérdida PUI
 
-| Factor Recaudo | Pérdida % | Pérdida Total (GWh equivalentes) | Escenario |
+| Factor Recaudo | Pérdida PUI % | Pérdida PUI Total (GWh) | Escenario |
 |----------------|-----------|----------------------------------|-----------|
 | 80% | -20.00% | 7,369 | Peor caso |
 | 85% | -15.00% | 5,527 | |
@@ -266,7 +310,7 @@ Pérdida_i,m = Giro_i,m × (1 - Factor_Recaudo)
 
 ### 7.2 Impacto por Agente (Top 5)
 
-| Agente | GWh Operación | Pérdida @80% | Pérdida @92% | Pérdida @98% |
+| Agente | GWh Operación | Pérdida PUI @80% | Pérdida PUI @92% | Pérdida PUI @98% |
 |--------|---------------|--------------|--------------|--------------|
 | VATIA | 6,053 | 1,211 | 484 | 194 |
 | SOUTH32 | 3,611 | 722 | 289 | 116 |
@@ -282,10 +326,10 @@ Pérdida_i,m = Giro_i,m × (1 - Factor_Recaudo)
 
 | Aspecto Regulatorio | Evidencia Cuantitativa | Impacto |
 |---------------------|------------------------|---------|
-| **Riesgo de cartera (Art. 12)** | 100% del riesgo recae sobre el CNIOR | Pérdida del 8% promedio sobre giros |
+| **Riesgo de cartera (Art. 12)** | 100% del riesgo recae sobre el CNIOR | Pérdida PUI del 8% promedio sobre giros |
 | **Obligatoriedad de pago** | Giros obligatorios sin garantía de recaudo | Flujo de caja negativo |
 | **Sin discriminación positiva** | Todos los independientes tienen mismo trato | Concentración del mercado |
-| **Desincentivo a participación** | Pérdida garantizada para nuevos entrantes | Barreras de entrada efectivas |
+| **Desincentivo a participación** | Pérdida PUI garantizada para nuevos entrantes | Barreras de entrada efectivas |
 
 ### 8.2 Comparación CIOR vs CNIOR
 
@@ -311,19 +355,19 @@ Pérdida_i,m = Giro_i,m × (1 - Factor_Recaudo)
 
 ### 9.1 Conclusiones Principales
 
-1. **Efecto uniforme del PUI:** Todos los comercializadores independientes enfrentan el mismo riesgo financiero del 8% sobre los giros obligatorios, independientemente de su tamaño o modelo de negocio.
+1. **Efecto uniforme del PUI:** Todos los comercializadores independientes enfrentan el mismo riesgo de pérdida PUI del 8% sobre los giros obligatorios, independientemente de su tamaño o modelo de negocio.
 
-2. **Pérdida estructural:** El PUI genera una pérdida garantizada para los independientes que operan en el segmento regulado, representando el 40.1% de su demanda total.
+2. **Pérdida PUI estructural:** El PUI genera una pérdida financiera garantizada para los independientes que operan en el segmento regulado (40.1% de su demanda total).
 
-3. **Asimetría confirmada:** La diferencia entre CIOR y CNIOR es significativa: el CIOR tiene ingreso blindado mientras que el CNIOR asume el 100% del riesgo de impago.
+3. **Asimetría confirmada:** La diferencia entre CIOR y CNIOR es significativa: el CIOR tiene ingreso blindado mientras que el CNIOR asume el 100% del riesgo de incobrabilidad del PUI.
 
 4. **Dependencia de contratos:** El 93.5% de la compra de energía se realiza mediante contratos bilaterales, lo que limita la exposición a precios spot pero no elimina el riesgo del PUI.
 
-5. **Impacto diferenciado:** Los agentes con mayor demanda regulada (VATIA, NEU ENERGY, ENERTOTAL) son los más afectados por el PUI en términos absolutos.
+5. **Impacto diferenciado:** Los agentes con mayor demanda regulada (VATIA, NEU ENERGY, ENERTOTAL) son los que enfrentan la mayor pérdida PUI en términos absolutos.
 
 ### 9.2 Recomendaciones para Comercializadores Independientes
 
-1. **Evaluación de viabilidad:** Antes de participar en procesos de PUI, evaluar si el margen del CRPUI cubre el costo esperado de incobrabilidad (8% promedio).
+1. **Evaluación de viabilidad del PUI:** Antes de participar en procesos de PUI, evaluar si el margen del CRPUI cubre la pérdida esperada por incobrabilidad (8% promedio).
 
 2. **Gestión de cartera:** Implementar mecanismos de cobro efectivo para minimizar el factor de recaudo real por debajo del 92% asumido.
 
