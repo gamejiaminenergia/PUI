@@ -1,0 +1,30 @@
+# Data files (generated, not source)
+# data/*.csv
+# data/resumen_ejecutivo.md
+
+# PostgreSQL
+*.dump
+*.sql.gz
+pg_dump_*
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor files
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# Python (if used for analysis)
+__pycache__/
+*.pyc
+.env
+venv/
+.venv/
+
+# Logs
+*.log

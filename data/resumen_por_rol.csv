@@ -1,0 +1,3 @@
+rol_pui,param_rcpui,param_pct_ae,param_factor_recaudo,param_competitivo,param_cfpui,n_agentes,n_mercados,gwh_totales,ingresos_pui_miles_millones_cop,egresos_giro_miles_millones_cop,flujo_neto_caja_miles_millones_cop,pct_prom_perdida_cnior,pct_prom_apalancamiento_cior,mes_inicio,mes_fin
+CIOR,0.03,0.10,0.92,f,0.025,1,29,776843.4298521421,0.041030825734309107,0,0.041030825734309107,,449278.327077784,2024-03-01,2026-08-01
+CNIOR,0.03,0.10,0.92,f,0.025,47,29,3344572.5941073652,0.0011409476006557027,0.0014057257778321611,-0.00011245806222657297,-8,,2024-03-01,2026-08-01
