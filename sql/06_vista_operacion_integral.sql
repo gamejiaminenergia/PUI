@@ -43,6 +43,11 @@ SELECT
         THEN ((compra_contratos_kwh / compra_total_kwh) * 100)::numeric(5,1)
         ELSE 0 
     END AS pct_compra_contratos,
+    -- % Compra en Bolsa
+    CASE WHEN compra_total_kwh > 0
+        THEN ((compra_bolsa_kwh / compra_total_kwh) * 100)::numeric(5,1)
+        ELSE 0
+    END AS pct_compra_bolsa,
     -- VENTA (GWh)
     (venta_contratos_kwh / 1e6)::numeric(12,2) AS venta_contratos_gwh,
     (venta_bolsa_kwh / 1e6)::numeric(12,2) AS venta_bolsa_gwh,

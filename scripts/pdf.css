@@ -1,0 +1,42 @@
+@page {
+  size: A3 landscape;
+  margin: 10mm 8mm;
+}
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 10px;
+  line-height: 1.25;
+  color: #222;
+}
+
+h1 { font-size: 22px; }
+h2 { font-size: 16px; page-break-before: auto; }
+h3 { font-size: 13px; }
+h4 { font-size: 11px; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: auto;
+  page-break-inside: auto;
+}
+
+thead { display: table-header-group; }
+tr { page-break-inside: avoid; }
+
+th, td {
+  border: 0.5px solid #999;
+  padding: 2px 3px;
+  white-space: nowrap;
+  font-size: 8px;
+}
+
+th {
+  background: #e8eef5;
+  font-weight: bold;
+}
+
+code {
+  font-size: 90%;
+}
